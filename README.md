@@ -20,6 +20,7 @@ The platform has 3 user types:
 - Email/password validation during login:
   - valid email format required
   - password minimum 6 characters and must include at least one letter
+- Logged-in users can securely change their password from `Change Password` in the top navigation
 - Employee expense submission flow with required fields:
   - Reason for expense
   - Date
@@ -33,7 +34,7 @@ The platform has 3 user types:
 - Admin user management:
   - add users (employee/manager/admin)
   - delete users
-  - assign employee to manager and department
+  - assign employee to manager and department with server-side validation
 
 ## Project Structure
 ```text
