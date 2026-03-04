@@ -22,6 +22,7 @@
       </a>
       <nav class="topnav">
         <% if (user) { %>
+          <a href="/account/security">Change Password</a>
           <% if (user.role === "employee") { %>
             <a href="/employee/dashboard">Employee Panel</a>
           <% } %>

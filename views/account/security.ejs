@@ -1,0 +1,48 @@
+<%- include("../partials/header", { title }) %>
+
+<section class="panel-head">
+  <div>
+    <p class="kicker">Account Security</p>
+    <h1>Change Password</h1>
+    <p class="subtle">Use a strong password with at least 6 characters and one letter.</p>
+  </div>
+</section>
+
+<section class="card">
+  <form action="/account/security" method="post" class="form-grid" style="max-width: 460px;">
+    <label>
+      Current Password
+      <input type="password" name="current_password" required autocomplete="current-password" />
+    </label>
+
+    <label>
+      New Password
+      <input
+        type="password"
+        name="new_password"
+        required
+        minlength="6"
+        pattern="(?=.*[A-Za-z]).{6,}"
+        title="Password must be at least 6 characters and include a letter."
+        autocomplete="new-password"
+      />
+    </label>
+
+    <label>
+      Confirm New Password
+      <input
+        type="password"
+        name="confirm_password"
+        required
+        minlength="6"
+        pattern="(?=.*[A-Za-z]).{6,}"
+        title="Password must be at least 6 characters and include a letter."
+        autocomplete="new-password"
+      />
+    </label>
+
+    <button class="primary-btn" type="submit">Update Password</button>
+  </form>
+</section>
+
+<%- include("../partials/footer") %>

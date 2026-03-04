@@ -59,7 +59,9 @@
       <select name="manager_id">
         <option value="">Select Manager</option>
         <% managers.forEach((manager) => { %>
-          <option value="<%= manager.id %>"><%= manager.full_name %></option>
+          <option value="<%= manager.id %>" data-department-id="<%= manager.department_id || "" %>">
+            <%= manager.full_name %> (<%= manager.department_name || "No Department" %>)
+          </option>
         <% }) %>
       </select>
     </label>
@@ -125,6 +127,17 @@
     const departmentLabel = document.getElementById("department-label");
     const managerField = managerLabel.querySelector("select");
     const departmentField = departmentLabel.querySelector("select");
+    const managerOptions = Array.from(managerField.options).slice(1);
+
+    function filterManagersByDepartment() {
+      const selectedDepartment = departmentField.value;
+      managerField.value = "";
+
+      managerOptions.forEach((option) => {
+        const managerDepartmentId = option.dataset.departmentId || "";
+        option.hidden = Boolean(selectedDepartment) && managerDepartmentId !== selectedDepartment;
+      });
+    }
 
     function syncVisibility() {
       const role = roleSelect.value;
@@ -142,9 +155,12 @@
       if (!needsDepartment) {
         departmentField.value = "";
       }
+
+      filterManagersByDepartment();
     }
 
     roleSelect.addEventListener("change", syncVisibility);
+    departmentField.addEventListener("change", syncVisibility);
     syncVisibility();
   })();
 </script>

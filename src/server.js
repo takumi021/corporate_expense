@@ -74,6 +74,14 @@ function statusLabel(status) {
   return "Pending Manager Approval";
 }
 
+function parsePositiveInt(value) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+}
+
 app.get("/", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
@@ -150,6 +158,66 @@ app.post("/logout", requireAuth, (req, res) => {
   req.session.destroy(() => {
     res.redirect("/login");
   });
+});
+
+app.get("/account/security", requireAuth, (req, res) => {
+  return res.render("account/security", { title: "Account Security" });
+});
+
+app.post("/account/security", requireAuth, async (req, res) => {
+  const currentPassword = String(req.body.current_password || "");
+  const newPassword = String(req.body.new_password || "");
+  const confirmPassword = String(req.body.confirm_password || "");
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    setFlash(req, "error", "All password fields are required.");
+    return res.redirect("/account/security");
+  }
+
+  if (!isValidPassword(newPassword)) {
+    setFlash(req, "error", "New password must have at least 6 characters and include a letter.");
+    return res.redirect("/account/security");
+  }
+
+  if (newPassword !== confirmPassword) {
+    setFlash(req, "error", "New password and confirmation do not match.");
+    return res.redirect("/account/security");
+  }
+
+  if (currentPassword === newPassword) {
+    setFlash(req, "error", "New password must be different from current password.");
+    return res.redirect("/account/security");
+  }
+
+  try {
+    const userResult = await query(`SELECT id, password_hash FROM users WHERE id = $1 AND active = TRUE`, [
+      req.session.user.id,
+    ]);
+
+    const currentUser = userResult.rows[0];
+    if (!currentUser) {
+      setFlash(req, "error", "User account not found.");
+      return res.redirect("/account/security");
+    }
+
+    const matches = await bcrypt.compare(currentPassword, currentUser.password_hash);
+    if (!matches) {
+      setFlash(req, "error", "Current password is incorrect.");
+      return res.redirect("/account/security");
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    await query(`UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [
+      newPasswordHash,
+      req.session.user.id,
+    ]);
+
+    setFlash(req, "success", "Password changed successfully.");
+    return res.redirect("/account/security");
+  } catch (error) {
+    setFlash(req, "error", `Could not change password: ${error.message}`);
+    return res.redirect("/account/security");
+  }
 });
 
 app.get("/employee/dashboard", requireRole("employee"), async (req, res) => {
@@ -389,10 +457,11 @@ app.get("/admin/users", requireRole("admin"), async (_req, res) => {
       query(`SELECT id, name FROM departments ORDER BY name`),
       query(
         `
-        SELECT id, full_name, department_id
-        FROM users
-        WHERE role = 'manager' AND active = TRUE
-        ORDER BY full_name
+        SELECT u.id, u.full_name, u.department_id, d.name AS department_name
+        FROM users u
+        LEFT JOIN departments d ON d.id = u.department_id
+        WHERE u.role = 'manager' AND u.active = TRUE
+        ORDER BY u.full_name
         `
       ),
     ]);
@@ -416,8 +485,8 @@ app.post("/admin/users", requireRole("admin"), async (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const password = String(req.body.password || "");
   const role = String(req.body.role || "").trim();
-  const departmentId = req.body.department_id ? Number(req.body.department_id) : null;
-  const managerId = req.body.manager_id ? Number(req.body.manager_id) : null;
+  const departmentId = req.body.department_id ? parsePositiveInt(req.body.department_id) : null;
+  const managerId = req.body.manager_id ? parsePositiveInt(req.body.manager_id) : null;
 
   if (!fullName || !isValidEmail(email) || !isValidPassword(password)) {
     setFlash(
@@ -433,24 +502,61 @@ app.post("/admin/users", requireRole("admin"), async (req, res) => {
     return res.redirect("/admin/users");
   }
 
-  if (role !== "admin" && !departmentId) {
-    setFlash(req, "error", "Department is required for employees and managers.");
-    return res.redirect("/admin/users");
-  }
-
-  if (role === "employee" && !managerId) {
-    setFlash(req, "error", "Manager assignment is required for employees.");
-    return res.redirect("/admin/users");
-  }
-
   try {
+    if (role !== "admin") {
+      if (!departmentId) {
+        setFlash(req, "error", "Department is required for employees and managers.");
+        return res.redirect("/admin/users");
+      }
+
+      const departmentResult = await query(`SELECT id FROM departments WHERE id = $1`, [departmentId]);
+      if (departmentResult.rowCount === 0) {
+        setFlash(req, "error", "Selected department does not exist.");
+        return res.redirect("/admin/users");
+      }
+    }
+
+    if (role === "employee") {
+      if (!managerId) {
+        setFlash(req, "error", "Manager assignment is required for employees.");
+        return res.redirect("/admin/users");
+      }
+
+      const managerResult = await query(
+        `
+        SELECT id, department_id
+        FROM users
+        WHERE id = $1 AND role = 'manager' AND active = TRUE
+        `,
+        [managerId]
+      );
+
+      const selectedManager = managerResult.rows[0];
+      if (!selectedManager) {
+        setFlash(req, "error", "Selected manager is invalid or inactive.");
+        return res.redirect("/admin/users");
+      }
+
+      if (selectedManager.department_id !== departmentId) {
+        setFlash(req, "error", "Employee and manager must belong to the same department.");
+        return res.redirect("/admin/users");
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
     await query(
       `
       INSERT INTO users (full_name, email, password_hash, role, department_id, manager_id, active)
       VALUES ($1, $2, $3, $4, $5, $6, TRUE)
       `,
-      [fullName, email, passwordHash, role, departmentId, role === "employee" ? managerId : null]
+      [
+        fullName,
+        email,
+        passwordHash,
+        role,
+        role === "admin" ? null : departmentId,
+        role === "employee" ? managerId : null,
+      ]
     );
 
     setFlash(req, "success", `${role} account created successfully.`);
