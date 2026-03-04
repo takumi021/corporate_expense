@@ -1,0 +1,43 @@
+<%- include("../partials/header", { title }) %>
+
+<section class="panel-head">
+  <div>
+    <p class="kicker">Admin Workspace</p>
+    <h1>System Overview</h1>
+    <p class="subtle">Manage users, departments, and monitor processing status at a glance.</p>
+  </div>
+  <a class="primary-btn inline-btn" href="/admin/users">Go to User Management</a>
+</section>
+
+<section class="stats-grid">
+  <article class="card stat-card">
+    <p class="stat-label">Employees</p>
+    <h2><%= stats.employees %></h2>
+  </article>
+  <article class="card stat-card">
+    <p class="stat-label">Managers</p>
+    <h2><%= stats.managers %></h2>
+  </article>
+  <article class="card stat-card">
+    <p class="stat-label">Admins</p>
+    <h2><%= stats.admins %></h2>
+  </article>
+  <article class="card stat-card">
+    <p class="stat-label">Departments</p>
+    <h2><%= stats.departments %></h2>
+  </article>
+  <article class="card stat-card">
+    <p class="stat-label">Pending</p>
+    <h2><%= stats.pending %></h2>
+  </article>
+  <article class="card stat-card">
+    <p class="stat-label">Approved</p>
+    <h2><%= stats.approved %></h2>
+  </article>
+  <article class="card stat-card">
+    <p class="stat-label">Rejected</p>
+    <h2><%= stats.rejected %></h2>
+  </article>
+</section>
+
+<%- include("../partials/footer") %>

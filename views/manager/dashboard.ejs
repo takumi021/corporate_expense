@@ -1,0 +1,80 @@
+<%- include("../partials/header", { title }) %>
+
+<section class="panel-head">
+  <div>
+    <p class="kicker">Manager Workspace</p>
+    <h1>Department Expense Approvals</h1>
+    <p class="subtle">Review recent submissions and approve or reject with comments.</p>
+  </div>
+  <div class="pill">
+    Department: <strong><%= user.departmentName || "Not Assigned" %></strong>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-title-row">
+    <h2>Recent Department Expenses</h2>
+    <span class="subtle"><%= expenses.length %> records</span>
+  </div>
+
+  <% if (expenses.length === 0) { %>
+    <p class="empty-state">No expenses available for review.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Reason</th>
+            <th>Where</th>
+            <th>Amount</th>
+            <th>Paid By</th>
+            <th>Status</th>
+            <th>Proof</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% expenses.forEach((expense) => { %>
+            <tr>
+              <td><%= expense.employee_name %></td>
+              <td><%= new Date(expense.expense_date).toLocaleDateString("en-IN") %></td>
+              <td>
+                <strong><%= expense.reason %></strong>
+                <% if (expense.manager_comment) { %>
+                  <div class="tiny-note">Review note: <%= expense.manager_comment %></div>
+                <% } %>
+              </td>
+              <td><%= expense.location %></td>
+              <td>₹<%= Number(expense.amount).toFixed(2) %></td>
+              <td><%= expense.paid_by %></td>
+              <td><span class="status status-<%= expense.status %>"><%= expense.statusLabel %></span></td>
+              <td><a href="<%= expense.proof_file %>" target="_blank" rel="noreferrer">View</a></td>
+              <td>
+                <% if (expense.status === "pending") { %>
+                  <form class="review-form" action="/manager/expenses/<%= expense.id %>/review" method="post">
+                    <input
+                      type="text"
+                      name="manager_comment"
+                      maxlength="150"
+                      placeholder="Optional note"
+                    />
+                    <div class="review-actions">
+                      <button class="approve-btn" type="submit" name="decision" value="approve">Approve</button>
+                      <button class="reject-btn" type="submit" name="decision" value="reject">Reject</button>
+                    </div>
+                  </form>
+                <% } else { %>
+                  <span class="tiny-note">Finalized</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include("../partials/footer") %>

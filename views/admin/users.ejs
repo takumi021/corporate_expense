@@ -1,0 +1,152 @@
+<%- include("../partials/header", { title }) %>
+
+<section class="panel-head">
+  <div>
+    <p class="kicker">Admin Workspace</p>
+    <h1>User Management</h1>
+    <p class="subtle">Add or remove employees and managers. Admin users can also be created if needed.</p>
+  </div>
+  <a class="ghost-link" href="/admin/dashboard">Back to Admin Dashboard</a>
+</section>
+
+<section class="card">
+  <h2>Create New User</h2>
+  <form action="/admin/users" method="post" class="form-grid form-grid-3" id="create-user-form">
+    <label>
+      Full Name
+      <input type="text" name="full_name" required maxlength="80" />
+    </label>
+
+    <label>
+      Email
+      <input type="email" name="email" required placeholder="name@company.com" />
+    </label>
+
+    <label>
+      Password
+      <input
+        type="password"
+        name="password"
+        required
+        minlength="6"
+        pattern="(?=.*[A-Za-z]).{6,}"
+        title="Password must be at least 6 characters and include a letter."
+      />
+    </label>
+
+    <label>
+      Role
+      <select name="role" id="role-select" required>
+        <option value="">Select Role</option>
+        <option value="employee">Employee</option>
+        <option value="manager">Manager</option>
+        <option value="admin">Admin</option>
+      </select>
+    </label>
+
+    <label id="department-label">
+      Department
+      <select name="department_id">
+        <option value="">Select Department</option>
+        <% departments.forEach((department) => { %>
+          <option value="<%= department.id %>"><%= department.name %></option>
+        <% }) %>
+      </select>
+    </label>
+
+    <label id="manager-label">
+      Manager (for employees)
+      <select name="manager_id">
+        <option value="">Select Manager</option>
+        <% managers.forEach((manager) => { %>
+          <option value="<%= manager.id %>"><%= manager.full_name %></option>
+        <% }) %>
+      </select>
+    </label>
+
+    <button class="primary-btn wide-btn" type="submit">Add User</button>
+  </form>
+</section>
+
+<section class="card">
+  <div class="section-title-row">
+    <h2>Current Users</h2>
+    <span class="subtle"><%= users.length %> total</span>
+  </div>
+
+  <% if (users.length === 0) { %>
+    <p class="empty-state">No users available yet.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Manager</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach((u) => { %>
+            <tr>
+              <td><%= u.full_name %></td>
+              <td><%= u.email %></td>
+              <td><span class="role-chip role-<%= u.role %>"><%= u.role %></span></td>
+              <td><%= u.department_name || "-" %></td>
+              <td><%= u.manager_name || "-" %></td>
+              <td><%= u.active ? "Active" : "Inactive" %></td>
+              <td><%= new Date(u.created_at).toLocaleDateString("en-IN") %></td>
+              <td>
+                <% if (user.id !== u.id) { %>
+                  <form action="/admin/users/<%= u.id %>/delete" method="post">
+                    <button class="reject-btn" type="submit" onclick="return confirm('Delete this user?')">Delete</button>
+                  </form>
+                <% } else { %>
+                  <span class="tiny-note">Current User</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<script>
+  (function () {
+    const roleSelect = document.getElementById("role-select");
+    const managerLabel = document.getElementById("manager-label");
+    const departmentLabel = document.getElementById("department-label");
+    const managerField = managerLabel.querySelector("select");
+    const departmentField = departmentLabel.querySelector("select");
+
+    function syncVisibility() {
+      const role = roleSelect.value;
+      const needsDepartment = role === "employee" || role === "manager";
+      const needsManager = role === "employee";
+
+      managerLabel.style.display = needsManager ? "block" : "none";
+      departmentLabel.style.display = needsDepartment ? "block" : "none";
+
+      managerField.required = needsManager;
+      departmentField.required = needsDepartment;
+      if (!needsManager) {
+        managerField.value = "";
+      }
+      if (!needsDepartment) {
+        departmentField.value = "";
+      }
+    }
+
+    roleSelect.addEventListener("change", syncVisibility);
+    syncVisibility();
+  })();
+</script>
+
+<%- include("../partials/footer") %>

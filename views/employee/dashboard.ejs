@@ -1,0 +1,101 @@
+<%- include("../partials/header", { title }) %>
+
+<section class="panel-head">
+  <div>
+    <p class="kicker">Employee Workspace</p>
+    <h1>Submit New Expense</h1>
+    <p class="subtle">Upload details and proof, then send to your manager for approval.</p>
+  </div>
+  <div class="pill">
+    Department: <strong><%= user.departmentName || "Not Assigned" %></strong>
+  </div>
+</section>
+
+<section class="card">
+  <form action="/employee/expenses" method="post" enctype="multipart/form-data" class="form-grid form-grid-2">
+    <label>
+      Reason for Expense
+      <input type="text" name="reason" required maxlength="200" placeholder="Client dinner, travel, supplies..." />
+    </label>
+
+    <label>
+      Date
+      <input type="date" name="expense_date" required />
+    </label>
+
+    <label>
+      Where
+      <input type="text" name="location" required maxlength="120" placeholder="City / Vendor / Location" />
+    </label>
+
+    <label>
+      Amount (INR)
+      <input type="number" name="amount" required min="1" step="0.01" placeholder="2500.00" />
+    </label>
+
+    <label>
+      Paid By?
+      <select name="paid_by" required>
+        <option value="">Select One</option>
+        <option value="Company">Company</option>
+        <option value="Employee">Employee</option>
+      </select>
+    </label>
+
+    <label>
+      Proof of Payment
+      <input type="file" name="proof_file" required accept=".pdf,.jpg,.jpeg,.png" />
+    </label>
+
+    <button class="primary-btn wide-btn" type="submit">Apply for Approval</button>
+  </form>
+</section>
+
+<section class="card">
+  <div class="section-title-row">
+    <h2>My Recent Expenses</h2>
+    <span class="subtle"><%= expenses.length %> records</span>
+  </div>
+
+  <% if (expenses.length === 0) { %>
+    <p class="empty-state">No expenses submitted yet.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Reason</th>
+            <th>Where</th>
+            <th>Amount</th>
+            <th>Paid By</th>
+            <th>Status</th>
+            <th>Proof</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% expenses.forEach((expense) => { %>
+            <tr>
+              <td><%= new Date(expense.expense_date).toLocaleDateString("en-IN") %></td>
+              <td>
+                <strong><%= expense.reason %></strong>
+                <% if (expense.manager_comment) { %>
+                  <div class="tiny-note">Manager note: <%= expense.manager_comment %></div>
+                <% } %>
+              </td>
+              <td><%= expense.location %></td>
+              <td>₹<%= Number(expense.amount).toFixed(2) %></td>
+              <td><%= expense.paid_by %></td>
+              <td>
+                <span class="status status-<%= expense.status %>"><%= expense.statusLabel %></span>
+              </td>
+              <td><a href="<%= expense.proof_file %>" target="_blank" rel="noreferrer">View</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include("../partials/footer") %>

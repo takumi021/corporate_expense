@@ -1,0 +1,10 @@
+<%- include("partials/header", { title: title || "Error" }) %>
+
+<section class="card error-card">
+  <p class="kicker">System Message</p>
+  <h1><%= title || "Something went wrong" %></h1>
+  <p><%= message || "Unexpected error." %></p>
+  <a class="primary-btn inline-btn" href="/">Go to Home</a>
+</section>
+
+<%- include("partials/footer") %>

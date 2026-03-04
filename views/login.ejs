@@ -1,0 +1,47 @@
+<%- include("partials/header", { title }) %>
+
+<section class="hero">
+  <div class="hero-copy">
+    <p class="kicker">Material 3 Expressive</p>
+    <h1>Corporate Expense Tracking Portal</h1>
+    <p>
+      Clean, role-based expense operations for employees, managers, and administrators.
+      Track approvals and disbursement status in one secure workflow.
+    </p>
+  </div>
+
+  <div class="card auth-card">
+    <h2>Sign In</h2>
+    <p class="subtle">Use your official login credentials.</p>
+    <form action="/login" method="post" class="form-grid">
+      <label>
+        Email Address
+        <input
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          placeholder="name@company.com"
+        />
+      </label>
+
+      <label>
+        Password
+        <input
+          type="password"
+          name="password"
+          required
+          minlength="6"
+          pattern="(?=.*[A-Za-z]).{6,}"
+          title="Password must be at least 6 characters and include a letter."
+          autocomplete="current-password"
+          placeholder="••••••••"
+        />
+      </label>
+
+      <button class="primary-btn" type="submit">Login</button>
+    </form>
+  </div>
+</section>
+
+<%- include("partials/footer") %>

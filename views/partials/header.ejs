@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title || "Corporate Expense Tracker" %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Outfit:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/public/css/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <header class="topbar shell">
+      <a class="brand" href="/">
+        <span class="brand-dot"></span>
+        Corporate Expense Tracking
+      </a>
+      <nav class="topnav">
+        <% if (user) { %>
+          <% if (user.role === "employee") { %>
+            <a href="/employee/dashboard">Employee Panel</a>
+          <% } %>
+          <% if (user.role === "manager") { %>
+            <a href="/manager/dashboard">Manager Panel</a>
+          <% } %>
+          <% if (user.role === "admin") { %>
+            <a href="/admin/dashboard">Admin Panel</a>
+            <a href="/admin/users">User Management</a>
+          <% } %>
+          <form action="/logout" method="post">
+            <button class="ghost-btn" type="submit">Logout</button>
+          </form>
+        <% } %>
+      </nav>
+    </header>
+    <main class="shell">
+      <% if (flash) { %>
+        <div class="alert <%= flash.type === "error" ? "alert-error" : "alert-success" %>">
+          <%= flash.text %>
+        </div>
+      <% } %>
