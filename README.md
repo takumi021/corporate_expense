@@ -151,6 +151,35 @@ npm run dev
 Open:
 `http://localhost:3000`
 
+## One-Click Windows Launcher (Desktop)
+
+I added a Windows one-click launcher that:
+- starts PostgreSQL service (if found and stopped)
+- starts the app with `npm run dev`
+- opens `http://localhost:3000` automatically
+
+### Files added
+- `Launch-Corporate-Expense.cmd`
+- `scripts/oneclick-launch.ps1`
+- `scripts/install-desktop-shortcut.ps1`
+
+### Create desktop shortcut (one time)
+From repo root, run in PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install-desktop-shortcut.ps1
+```
+
+Then double-click `Corporate Expense Tracker` shortcut on desktop.
+
+### Direct launch (without shortcut)
+Double-click `Launch-Corporate-Expense.cmd` from project root.
+
+### Optional npm command
+```bash
+npm run oneclick
+```
+
 ## Important Notes
 - Uploads are saved in `uploads/`.
 - Max proof upload size is 5MB.
